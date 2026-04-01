@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Logs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-900 text-gray-100">
+    
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold text-cyan-400">🔐 SIEM Platform</h1>
+                    <div class="flex space-x-4">
+                        <a href="/" class="nav-link">Overview</a>
+                        <a href="/logs" class="nav-link active">Logs</a>
+                        <a href="/alerts" class="nav-link">Alerts</a>
+                        <a href="/live" class="nav-link">Live Monitor</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="connection-status" class="status-badge status-connecting">Connecting...</span>
+                    <span class="text-sm text-gray-400" id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- Filters -->
+        <div class="card mb-6">
+            <h3 class="text-xl font-semibold mb-4">Filters</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">IP Address</label>
+                    <input type="text" id="filter-ip" placeholder="192.168.1.1" class="input-field">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Event Type</label>
+                    <select id="filter-event-type" class="input-field">
+                        <option value="">All Events</option>
+                        <option value="failed_login">Failed Login</option>
+                        <option value="successful_login">Successful Login</option>
+                        <option value="file_access">File Access</option>
+                        <option value="firewall_block">Firewall Block</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Source</label>
+                    <input type="text" id="filter-source" placeholder="server-01" class="input-field">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="btn-primary w-full">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Security Logs</h3>
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-400">Total: <span id="total-count">0</span></span>
+                    <button onclick="exportLogs()" class="btn-secondary">Export CSV</button>
+                    <button onclick="refreshLogs()" class="btn-primary">Refresh</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Source</th>
+                            <th>Event Type</th>
+                            <th>IP Address</th>
+                            <th>Username</th>
+                            <th>Severity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-table-body">
+                        <!-- Logs will be loaded here -->
+                        <tr>
+                            <td colspan="7" class="text-center text-gray-500 py-8">Loading logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+                <div class="text-sm text-gray-400">
+                    Showing <span id="showing-from">0</span> to <span id="showing-to">0</span> of <span id="showing-total">0</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" id="btn-prev" class="btn-secondary" disabled>Previous</button>
+                    <span class="px-4 py-2 text-sm">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                    <button onclick="nextPage()" id="btn-next" class="btn-secondary">Next</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Log Detail Modal -->
+    <div id="log-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Log Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <pre id="log-detail-content" class="bg-gray-800 p-4 rounded-lg overflow-auto max-h-96 text-sm"></pre>
+        </div>
+    </div>
+
+    <script src="js/socket-client.js"></script>
+    <script src="js/logs.js"></script>
+    
+</body>
+</html>

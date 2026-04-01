@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Alerts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-900 text-gray-100">
+    
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold text-cyan-400">🔐 SIEM Platform</h1>
+                    <div class="flex space-x-4">
+                        <a href="/" class="nav-link">Overview</a>
+                        <a href="/logs" class="nav-link">Logs</a>
+                        <a href="/alerts" class="nav-link active">Alerts</a>
+                        <a href="/live" class="nav-link">Live Monitor</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="connection-status" class="status-badge status-connecting">Connecting...</span>
+                    <span class="text-sm text-gray-400" id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- Alert Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Open Alerts</p>
+                        <h3 class="text-2xl font-bold text-orange-400 mt-2" id="open-count">0</h3>
+                    </div>
+                    <div class="stat-icon bg-orange-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">High Severity</p>
+                        <h3 class="text-2xl font-bold text-red-400 mt-2" id="high-count">0</h3>
+                    </div>
+                    <div class="stat-icon bg-red-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Alerts</p>
+                        <h3 class="text-2xl font-bold text-green-400 mt-2" id="total-count">0</h3>
+                    </div>
+                    <div class="stat-icon bg-green-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-6">
+            <h3 class="text-xl font-semibold mb-4">Filters</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Status</label>
+                    <select id="filter-status" class="input-field">
+                        <option value="">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="investigating">Investigating</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="false_positive">False Positive</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Severity</label>
+                    <select id="filter-severity" class="input-field">
+                        <option value="">All Severities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()" class="btn-primary w-full">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts List -->
+        <div class="card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Security Alerts</h3>
+                <button onclick="refreshAlerts()" class="btn-primary">Refresh</button>
+            </div>
+
+            <div id="alerts-container" class="space-y-3">
+                <!-- Alerts will be loaded here -->
+                <div class="text-center text-gray-500 py-8">Loading alerts...</div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-700">
+                <div class="text-sm text-gray-400">
+                    Total: <span id="alert-total-count">0</span> alerts
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" id="btn-prev" class="btn-secondary" disabled>Previous</button>
+                    <span class="px-4 py-2 text-sm">Page <span id="current-page">1</span></span>
+                    <button onclick="nextPage()" id="btn-next" class="btn-secondary">Next</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/socket-client.js"></script>
+    <script src="js/alerts.js"></script>
+    
+</body>
+</html>

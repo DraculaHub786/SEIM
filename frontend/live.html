@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Live Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-900 text-gray-100">
+    
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold text-cyan-400">🔐 SIEM Platform</h1>
+                    <div class="flex space-x-4">
+                        <a href="/" class="nav-link">Overview</a>
+                        <a href="/logs" class="nav-link">Logs</a>
+                        <a href="/alerts" class="nav-link">Alerts</a>
+                        <a href="/live" class="nav-link active">Live Monitor</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="connection-status" class="status-badge status-connecting">Connecting...</span>
+                    <span class="text-sm text-gray-400" id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- Live Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Logs/Min</p>
+                        <h3 class="text-2xl font-bold text-cyan-400 mt-2" id="logs-per-min">0</h3>
+                    </div>
+                    <div class="stat-icon bg-cyan-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Active Sessions</p>
+                        <h3 class="text-2xl font-bold text-green-400 mt-2" id="active-sessions">0</h3>
+                    </div>
+                    <div class="stat-icon bg-green-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Recent Alerts</p>
+                        <h3 class="text-2xl font-bold text-orange-400 mt-2" id="recent-alerts">0</h3>
+                    </div>
+                    <div class="stat-icon bg-orange-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Monitor Status</p>
+                        <h3 class="text-2xl font-bold text-green-400 mt-2">LIVE</h3>
+                    </div>
+                    <div class="stat-icon bg-green-500">
+                        <div class="pulse-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleMonitoring()" id="btn-monitor" class="btn-primary">
+                        <span id="monitor-text">⏸ Pause</span>
+                    </button>
+                    <button onclick="clearLogs()" class="btn-secondary">🗑️ Clear</button>
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" id="auto-scroll" checked class="form-checkbox bg-gray-700 border-gray-600">
+                        <span>Auto-scroll</span>
+                    </label>
+                </div>
+                <div class="text-sm text-gray-400">
+                    Showing last <span id="log-count">0</span> logs
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Feed -->
+        <div class="card">
+            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                <span class="pulse-dot mr-2"></span>
+                Live Security Feed
+            </h3>
+            
+            <div id="live-feed" class="space-y-2 max-h-screen overflow-y-auto">
+                <div class="text-center text-gray-500 py-8">Waiting for incoming logs...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/socket-client.js"></script>
+    <script src="js/live.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Dashboard - Overview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-900 text-gray-100">
+    
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold text-cyan-400">🔐 SIEM Platform</h1>
+                    <div class="flex space-x-4">
+                        <a href="/" class="nav-link active">Overview</a>
+                        <a href="/logs" class="nav-link">Logs</a>
+                        <a href="/alerts" class="nav-link">Alerts</a>
+                        <a href="/live" class="nav-link">Live Monitor</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="connection-status" class="status-badge status-connecting">Connecting...</span>
+                    <span class="text-sm text-gray-400" id="current-time"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Logs -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Logs</p>
+                        <h3 class="text-3xl font-bold text-white mt-2" id="total-logs">0</h3>
+                        <p class="text-sm text-gray-500 mt-1">All time</p>
+                    </div>
+                    <div class="stat-icon bg-blue-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Alerts -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Alerts</p>
+                        <h3 class="text-3xl font-bold text-white mt-2" id="total-alerts">0</h3>
+                        <p class="text-sm text-gray-500 mt-1">All time</p>
+                    </div>
+                    <div class="stat-icon bg-yellow-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Open Alerts -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Open Alerts</p>
+                        <h3 class="text-3xl font-bold text-orange-400 mt-2" id="open-alerts">0</h3>
+                        <p class="text-sm text-gray-500 mt-1">Needs attention</p>
+                    </div>
+                    <div class="stat-icon bg-orange-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Threats -->
+            <div class="stat-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Critical Threats</p>
+                        <h3 class="text-3xl font-bold text-red-400 mt-2" id="critical-alerts">0</h3>
+                        <p class="text-sm text-gray-500 mt-1">High severity</p>
+                    </div>
+                    <div class="stat-icon bg-red-500">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Logs Over Time Chart -->
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-4">Logs Over Time (Last 24 Hours)</h3>
+                <div class="chart-container">
+                    <canvas id="logsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Events by Type Chart -->
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-4">Events by Type</h3>
+                <div class="chart-container">
+                    <canvas id="eventsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Recent Alerts</h3>
+                <a href="alerts.html" class="text-cyan-400 hover:text-cyan-300 text-sm">View All →</a>
+            </div>
+            <div id="recent-alerts" class="space-y-3">
+                <!-- Alerts will be loaded here -->
+                <div class="text-center text-gray-500 py-8">Loading alerts...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/socket-client.js"></script>
+    <script src="js/dashboard.js"></script>
+    
+</body>
+</html>
