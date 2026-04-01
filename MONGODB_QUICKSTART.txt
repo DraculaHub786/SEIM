@@ -1,0 +1,220 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║           🔐 SIEM PLATFORM - MONGODB QUICK START 🔐              ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│  📋 CONNECTION DETAILS                                           │
+└──────────────────────────────────────────────────────────────────┘
+
+  Connection String:  mongodb://localhost:27017/
+  Database Name:      siem_db
+  Port:               27017
+  Authentication:     None (localhost)
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🚀 3-STEP QUICK START                                           │
+└──────────────────────────────────────────────────────────────────┘
+
+  STEP 1: Start MongoDB
+  ─────────────────────────────────────────────────────────────
+  Windows Service:
+    > net start MongoDB
+
+  Manual Start:
+    > mkdir C:\data\db
+    > mongod --dbpath C:\data\db
+
+
+  STEP 2: Connect MongoDB Compass
+  ─────────────────────────────────────────────────────────────
+  1. Open MongoDB Compass
+  2. Paste: mongodb://localhost:27017/
+  3. Click "Connect"
+
+
+  STEP 3: Run SIEM Application
+  ─────────────────────────────────────────────────────────────
+  > cd c:\Users\afjal\Documents\Mini-Projects\SEIM\backend
+  > pip install -r requirements.txt
+  > python app.py
+
+  ✓ Server ready on http://localhost:5000
+
+┌──────────────────────────────────────────────────────────────────┐
+│  📊 DATABASE COLLECTIONS                                         │
+└──────────────────────────────────────────────────────────────────┘
+
+  ┌────────────┬──────────────────────────────────────────────┐
+  │ Collection │ Description                                  │
+  ├────────────┼──────────────────────────────────────────────┤
+  │ logs       │ Security event logs (TTL: 90 days)          │
+  │ alerts     │ Security alerts from detection engine       │
+  │ users      │ User accounts (default: admin/admin123)     │
+  └────────────┴──────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🔍 COMMON QUERIES IN COMPASS                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+  Failed Logins:
+    { "event_type": "failed_login" }
+
+  Specific IP:
+    { "ip_address": "192.168.1.100" }
+
+  Last Hour:
+    { "timestamp": { "$gte": new Date(Date.now() - 3600000) } }
+
+  High Severity:
+    { "severity": "high" }
+
+  Open Alerts:
+    { "status": "open" }
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🧪 TEST YOUR SETUP (PowerShell)                                 │
+└──────────────────────────────────────────────────────────────────┘
+
+  Send Test Log:
+  ──────────────────────────────────────────────────────────────
+  $body = @{
+      source = "test-server"
+      event_type = "failed_login"
+      ip_address = "192.168.1.100"
+      username = "admin"
+      severity = "medium"
+  } | ConvertTo-Json
+
+  Invoke-RestMethod -Uri "http://localhost:5000/api/logs" `
+    -Method Post -Body $body -ContentType "application/json"
+
+  Then check MongoDB Compass - you should see the log!
+
+┌──────────────────────────────────────────────────────────────────┐
+│  📚 DOCUMENTATION FILES                                          │
+└──────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────┬────────────────────────────┐
+  │ File                            │ Purpose                    │
+  ├─────────────────────────────────┼────────────────────────────┤
+  │ MONGODB_INTEGRATION_COMPLETE.md │ ✅ Start here!             │
+  │ MONGODB_COMPASS_VISUAL_GUIDE.md │ 🎨 Visual walkthrough      │
+  │ MONGODB_SETUP_GUIDE.md          │ 📖 Detailed setup          │
+  │ MONGODB_COMPASS_REFERENCE.md    │ 🔍 Query reference         │
+  │ mongodb_helper.bat              │ 🛠️  Interactive helper     │
+  └─────────────────────────────────┴────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🛠️ HELPER SCRIPT                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+  Interactive Menu (Run this for help):
+  ──────────────────────────────────────────────────────────────
+  > mongodb_helper.bat
+
+  Features:
+    • Check MongoDB status
+    • Start/Stop MongoDB service
+    • Test connection
+    • Install dependencies
+    • Run SIEM application
+    • View connection string
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🔧 TROUBLESHOOTING                                              │
+└──────────────────────────────────────────────────────────────────┘
+
+  MongoDB Won't Start?
+  ──────────────────────────────────────────────────────────────
+  > sc query MongoDB
+  > mongod --dbpath C:\data\db
+
+  Can't Connect in Compass?
+  ──────────────────────────────────────────────────────────────
+  • Check MongoDB is running
+  • Verify port: netstat -an | findstr :27017
+  • Try: mongodb://127.0.0.1:27017/
+
+  Application Errors?
+  ──────────────────────────────────────────────────────────────
+  > cd backend
+  > pip install -r requirements.txt
+  > python app.py
+
+┌──────────────────────────────────────────────────────────────────┐
+│  ✅ VERIFICATION CHECKLIST                                       │
+└──────────────────────────────────────────────────────────────────┘
+
+  [ ] MongoDB service running (net start MongoDB)
+  [ ] MongoDB Compass connected (mongodb://localhost:27017/)
+  [ ] SIEM application running (python app.py)
+  [ ] siem_db database visible in Compass
+  [ ] Three collections present (logs, alerts, users)
+  [ ] Test log sent and visible in Compass
+  [ ] Indexes visible in Compass (Indexes tab)
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🎯 WHAT'S ALREADY CONFIGURED                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+  ✓ Database connection (backend/database/db_connection.py)
+  ✓ Environment config (.env file created)
+  ✓ MongoDB URI configured
+  ✓ Collections with validation
+  ✓ Performance indexes
+  ✓ TTL index (90-day auto-cleanup)
+  ✓ Default admin user
+  ✓ Schema validation
+  ✓ Error handling
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🔐 DEFAULT CREDENTIALS                                          │
+└──────────────────────────────────────────────────────────────────┘
+
+  Admin Account:
+    Username: admin
+    Password: admin123
+
+  ⚠️  Change these in production!
+
+┌──────────────────────────────────────────────────────────────────┐
+│  🎉 SUCCESS INDICATORS                                           │
+└──────────────────────────────────────────────────────────────────┘
+
+  When python app.py runs, you should see:
+
+    ✓ Connected to MongoDB: siem_db
+    ✓ Created 'logs' collection
+    ✓ Created indexes for 'logs' (TTL: 90 days)
+    ✓ Created 'alerts' collection
+    ✓ Created indexes for 'alerts'
+    ✓ Created 'users' collection
+    ✓ Created indexes for 'users'
+    ✓ Created default admin user
+    🚀 Server ready on 0.0.0.0:5000
+
+┌──────────────────────────────────────────────────────────────────┐
+│  📞 QUICK COMMANDS                                               │
+└──────────────────────────────────────────────────────────────────┘
+
+  Start MongoDB:     net start MongoDB
+  Stop MongoDB:      net stop MongoDB
+  Check Status:      sc query MongoDB
+  Test Connection:   mongosh --eval "db.adminCommand('ping')"
+  MongoDB Shell:     mongosh
+  Run App:           cd backend && python app.py
+  Helper Script:     mongodb_helper.bat
+
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║  🎉 MongoDB is ready to use with your SIEM platform! 🎉          ║
+║                                                                  ║
+║  Connection String: mongodb://localhost:27017/                   ║
+║  Database Name:     siem_db                                      ║
+║                                                                  ║
+║  Need help? Run: mongodb_helper.bat                              ║
+║  Or check: MONGODB_INTEGRATION_COMPLETE.md                       ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝

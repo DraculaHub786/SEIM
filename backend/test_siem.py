@@ -243,8 +243,10 @@ def test_diverse_sources():
     
     print(f"\n✅ Successfully sent {successful}/{len(diverse_logs)} logs from {len(sources)} unique sources")
     print("✓ Sources tested: web servers, workstations, containers, network devices, IoT, mobile, cloud, etc.")
+
+def test_brute_force_detection():
     """Test brute force attack detection"""
-    print_header("🚨 Test 3: Trigger Brute Force Alert")
+    print_header("🚨 Test 6: Trigger Brute Force Alert")
     
     print("Sending 12 failed login attempts from same IP...")
     print("(This will trigger the brute force detection engine)")
@@ -278,7 +280,7 @@ def test_diverse_sources():
 
 def test_custom_log():
     """Allow user to send custom log"""
-    print_header("✏️ Test 4: Send Custom Log")
+    print_header("✏️ Test 7: Send Custom Log")
     
     print("\nEnter custom log details:")
     print("(Press Enter to use default values)")

@@ -12,7 +12,10 @@ let logsPerMinute = 0;
 let logTimestamps = [];
 
 // Initialize live monitor
-function initLiveMonitor() {
+async function initLiveMonitor() {
+    // Load recent logs from database first
+    await loadRecentLogs();
+    
     // Listen for real-time logs
     socket.on('new_log', (log) => {
         if (isMonitoring) {
@@ -34,6 +37,28 @@ function initLiveMonitor() {
 
     // Load initial stats
     loadInitialStats();
+    
+    console.log('✅ Live monitor initialized');
+}
+
+// Load recent logs from database
+async function loadRecentLogs() {
+    try {
+        const response = await fetch(`${API_BASE}/logs?page=1&page_size=50&sort_by=timestamp&sort_order=desc`);
+        const data = await response.json();
+
+        if (data.success && data.logs.length > 0) {
+            console.log(`✅ Loaded ${data.logs.length} recent logs`);
+            liveLogs = data.logs;
+            displayLiveLogs();
+        } else {
+            console.log('⚠️ No logs found in database');
+            displayLiveLogs(); // Show "waiting" message
+        }
+    } catch (error) {
+        console.error('❌ Error loading recent logs:', error);
+        displayLiveLogs(); // Show "waiting" message
+    }
 }
 
 // Add log to live feed
@@ -54,23 +79,30 @@ function displayLiveLogs() {
     const feed = document.getElementById('live-feed');
     
     if (liveLogs.length === 0) {
-        feed.innerHTML = '<div class="text-center text-gray-500 py-8">Waiting for incoming logs...</div>';
+        feed.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-6xl mb-4">📡</div>
+                <p class="text-lg mb-2">Waiting for incoming logs...</p>
+                <p class="text-sm text-gray-600">Send test logs to see them here in real-time</p>
+                <p class="text-xs text-gray-700 mt-2">Run: <code class="bg-gray-800 px-2 py-1 rounded">python test_siem.py</code></p>
+            </div>
+        `;
         return;
     }
 
     feed.innerHTML = liveLogs.map(log => `
-        <div class="live-log-item ${getSeverityClass(log.event_type)}" style="animation: slideIn 0.3s ease-out;">
+        <div class="live-log-item ${getSeverityClass(log.severity || log.event_type)}" style="animation: slideIn 0.3s ease-out;">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-3 mb-1">
                         <span class="text-xs text-gray-400">${formatTime(log.timestamp)}</span>
-                        <span class="px-2 py-1 bg-gray-700 rounded text-xs">${log.event_type}</span>
+                        <span class="px-2 py-1 rounded text-xs ${getSeverityBadge(log.severity)}">${log.event_type}</span>
                         <span class="text-xs text-gray-500">${log.source}</span>
                     </div>
                     <div class="flex items-center space-x-4 text-sm">
-                        <span class="font-mono">${log.ip_address}</span>
-                        ${log.username ? `<span>👤 ${log.username}</span>` : ''}
-                        ${log.process_name ? `<span>⚙️ ${log.process_name}</span>` : ''}
+                        <span class="font-mono text-cyan-400">${log.ip_address}</span>
+                        ${log.username ? `<span class="text-gray-400">👤 ${log.username}</span>` : ''}
+                        ${log.process_name ? `<span class="text-gray-400">⚙️ ${log.process_name}</span>` : ''}
                     </div>
                     ${log.message ? `<p class="text-xs text-gray-400 mt-1">${log.message}</p>` : ''}
                 </div>
@@ -82,7 +114,7 @@ function displayLiveLogs() {
     `).join('');
 
     // Auto-scroll if enabled
-    if (document.getElementById('auto-scroll').checked) {
+    if (document.getElementById('auto-scroll') && document.getElementById('auto-scroll').checked) {
         feed.scrollTop = 0;
     }
 
@@ -176,13 +208,32 @@ function formatTime(timestamp) {
     return date.toLocaleTimeString();
 }
 
-function getSeverityClass(eventType) {
-    if (eventType.includes('failed') || eventType.includes('blocked')) {
+function getSeverityClass(severity) {
+    if (!severity) return 'border-blue-500';
+    
+    const severityLower = severity.toLowerCase();
+    if (severityLower === 'high' || severityLower.includes('critical')) {
         return 'border-red-500';
-    } else if (eventType.includes('success') || eventType.includes('login')) {
+    } else if (severityLower === 'medium') {
+        return 'border-yellow-500';
+    } else if (severityLower === 'low') {
         return 'border-green-500';
     }
     return 'border-blue-500';
+}
+
+function getSeverityBadge(severity) {
+    if (!severity) return 'bg-gray-700';
+    
+    const severityLower = severity.toLowerCase();
+    if (severityLower === 'high') {
+        return 'bg-red-600 text-white';
+    } else if (severityLower === 'medium') {
+        return 'bg-yellow-600 text-white';
+    } else if (severityLower === 'low') {
+        return 'bg-green-600 text-white';
+    }
+    return 'bg-gray-700';
 }
 
 function getEventIcon(eventType) {
@@ -192,7 +243,15 @@ function getEventIcon(eventType) {
         'file_access': '📁',
         'firewall_block': '🛡️',
         'network_connection': '🌐',
-        'process_execution': '⚙️'
+        'process_execution': '⚙️',
+        'sql_injection': '💉',
+        'port_scan': '🔍',
+        'dos_attack': '💥',
+        'unauthorized_access': '🚫',
+        'brute_force': '🔨',
+        'malware': '🦠',
+        'phishing': '🎣',
+        'data_exfiltration': '📤'
     };
     
     return `<span class="text-2xl">${icons[eventType] || '📋'}</span>`;

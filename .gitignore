@@ -1,9 +1,157 @@
-/ENHANCED_TESTING_SUITE.md
-/FINAL_INSTRUCTIONS.md
-/MONGODB_COMPASS_REFERENCE.md
-/MONGODB_COMPASS_VISUAL_GUIDE.md
-/MONGODB_INTEGRATION_COMPLETE.md
-/MONGODB_QUICKSTART.txt
-/MONGODB_SETUP_GUIDE.md
-/PROJECT_COMPLETE.md
-/PROJECT_FINAL_SUMMARY.md
+# ======================================
+# SIEM Platform - Git Ignore File
+# ======================================
+
+# === ENVIRONMENT & CONFIGURATION ===
+.env
+.env.local
+.env.*.local
+.env.dev
+.env.prod
+config.json
+settings.json
+
+# === PYTHON ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === VIRTUAL ENVIRONMENTS ===
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === IDE & EDITORS ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.atom/
+.fleet/
+*.code-workspace
+
+# === OS FILES ===
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+*.lnk
+$RECYCLE.BIN/
+ehthumbs.db
+
+# === LOGS ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# === DATABASE ===
+*.db
+*.sqlite
+*.sqlite3
+data/db/
+mongodb_data/
+*.dump
+
+# === DEPENDENCIES ===
+node_modules/
+package-lock.json
+yarn.lock
+
+# === BUILD & DIST ===
+dist/
+build/
+*.whl
+*.egg-info
+
+# === TEMPORARY FILES ===
+*.tmp
+*.temp
+*.bak
+*~
+temp/
+tmp/
+
+# === BROWSER & CACHE ===
+.cache/
+cache/
+.pytest_cache/
+
+# === SECURITY ===
+*.pem
+*.key
+private_key*
+*.jks
+*.p12
+
+# === MISCELLANEOUS ===
+.ipynb_checkpoints
+*.ipynb
+.mypy_cache/
+.dmypy.json
+.pyre/
+.tox/
+.hypothesis/
+
+# === PROJECT SPECIFIC ===
+frontend/node_modules/
+backend/.vscode/
+instance/
+celerybeat-schedule
+
+# === DOCUMENTATION DRAFTS ===
+PLAN.md
+plan.md
+TODO.md
+NOTES.md
+SCRATCH.md
+
+# === TESTING ===
+test_reports/
+coverage_reports/
+
+# === IDE ARTIFACTS ===
+*.iml
+out/
+
+# === DOCKER ===
+.docker/
+docker-compose.override.yml
+
+# === GIT ===
+.git/
+.gitconfig
