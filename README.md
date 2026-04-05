@@ -2,6 +2,12 @@
 
 A complete, production-ready Security Information and Event Management (SIEM) platform built with Flask (Python), MongoDB, and vanilla JavaScript. This system collects, analyzes, and visualizes security logs in real-time.
 
+## 🎯 Aim (For Practical Record)
+
+To design and implement a practical Security Information and Event Management (SIEM) system that can ingest logs from multiple sources, store and process them using MongoDB, detect suspicious activities (such as brute-force login attempts) through rule-based analysis, and present real-time alerts and security insights on an interactive web dashboard.
+
+This project aims to demonstrate the practical application of cybersecurity monitoring, incident detection, and visualization using Flask, MongoDB, Socket.IO, and JavaScript.
+
 ![SIEM Platform](https://img.shields.io/badge/SIEM-Platform-cyan)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-green)

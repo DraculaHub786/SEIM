@@ -6,12 +6,14 @@
     <title>SIEM Dashboard - Live Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="js/auth.js"></script>
 </head>
-<body class="bg-gray-900 text-gray-100">
+<body class="text-slate-200 antialiased selection:bg-cyan-500/30">
     
     <!-- Navigation -->
-    <nav class="bg-gray-800 border-b border-gray-700">
+    <nav class="glass-nav">
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-8">
@@ -84,7 +86,7 @@
                         <p class="text-gray-400 text-sm">Monitor Status</p>
                         <h3 class="text-2xl font-bold text-green-400 mt-2">LIVE</h3>
                     </div>
-                    <div class="stat-icon bg-green-500">
+                    <div class="stat-icon" style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(16, 185, 129, 0.2);">
                         <div class="pulse-dot"></div>
                     </div>
                 </div>

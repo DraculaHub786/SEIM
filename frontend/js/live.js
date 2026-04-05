@@ -44,7 +44,9 @@ async function initLiveMonitor() {
 // Load recent logs from database
 async function loadRecentLogs() {
     try {
-        const response = await fetch(`${API_BASE}/logs?page=1&page_size=50&sort_by=timestamp&sort_order=desc`);
+        const response = await fetch(`${API_BASE}/logs?page=1&page_size=50&sort_by=timestamp&sort_order=desc`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success && data.logs.length > 0) {
@@ -177,7 +179,9 @@ function showAlertNotification(alert) {
 // Load initial statistics
 async function loadInitialStats() {
     try {
-        const response = await fetch(`${API_BASE}/alerts/stats`);
+        const response = await fetch(`${API_BASE}/alerts/stats`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success) {

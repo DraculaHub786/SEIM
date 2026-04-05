@@ -38,7 +38,7 @@ async function initDashboard() {
 async function loadStatistics() {
     try {
         // Load log stats
-        const logResponse = await fetch(`${API_BASE}/logs/stats`);
+        const logResponse = await fetch(`${API_BASE}/logs/stats`, { headers: window.getAuthHeaders() });
         const logData = await logResponse.json();
 
         if (logData.success) {
@@ -47,7 +47,7 @@ async function loadStatistics() {
         }
 
         // Load alert stats
-        const alertResponse = await fetch(`${API_BASE}/alerts/stats`);
+        const alertResponse = await fetch(`${API_BASE}/alerts/stats`, { headers: window.getAuthHeaders() });
         const alertData = await alertResponse.json();
 
         if (alertData.success) {
@@ -67,15 +67,24 @@ async function loadStatistics() {
 async function initializeCharts() {
     try {
         // Fetch real logs over time data
-        const logsTimeResponse = await fetch(`${API_BASE}/logs/chart/over-time?hours=24`);
+        const logsTimeResponse = await fetch(`${API_BASE}/logs/chart/over-time?hours=24`, { headers: window.getAuthHeaders() });
         const logsTimeData = await logsTimeResponse.json();
         
         // Fetch real events by type data
-        const eventsTypeResponse = await fetch(`${API_BASE}/logs/chart/by-type`);
+        const eventsTypeResponse = await fetch(`${API_BASE}/logs/chart/by-type`, { headers: window.getAuthHeaders() });
         const eventsTypeData = await eventsTypeResponse.json();
+
+        // Chart.js Global Defaults for Figma-style UI
+        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.03)';
         
-        // Logs over time chart (LINE CHART - REAL DATA)
+        // Logs over time chart (LINE CHART)
         const logsCtx = document.getElementById('logsChart').getContext('2d');
+        let logsGradient = logsCtx.createLinearGradient(0, 0, 0, 300);
+        logsGradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
+        logsGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
         logsChart = new Chart(logsCtx, {
             type: 'line',
             data: {
@@ -83,94 +92,136 @@ async function initializeCharts() {
                 datasets: [{
                     label: 'Logs',
                     data: logsTimeData.success ? logsTimeData.data : [],
-                    borderColor: '#06B6D4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    borderColor: '#38bdf8',
+                    borderWidth: 2,
+                    backgroundColor: logsGradient,
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#0f172a',
+                    pointBorderColor: '#38bdf8',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     title: {
                         display: true,
-                        text: 'Logs Over Time (Last 24 Hours) - LIVE DATA',
-                        color: '#9CA3AF',
-                        font: { size: 12 }
+                        text: 'Logs Over Time (Last 24 Hours)',
+                        color: '#cbd5e1',
+                        font: { size: 13, weight: '500' },
+                        padding: { bottom: 20 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(56, 189, 248, 0.2)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            color: '#374151'
-                        },
-                        ticks: {
-                            color: '#9CA3AF',
-                            stepSize: 1
-                        }
+                        grid: { borderDash: [4, 4], drawBorder: false },
+                        ticks: { stepSize: 1, padding: 10 }
                     },
                     x: {
-                        grid: {
-                            color: '#374151'
-                        },
-                        ticks: {
-                            color: '#9CA3AF',
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
+                        grid: { display: false, drawBorder: false },
+                        ticks: { maxRotation: 45, minRotation: 45, padding: 10, maxTicksLimit: 12 }
                     }
                 }
             }
         });
 
-        // Events by type chart (DOUGHNUT CHART - REAL DATA)
+        // Events by type chart (DOUGHNUT CHART)
         const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+        const colors = ['#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#0ea5e9', '#ec4899', '#f97316', '#14b8a6', '#6366f1', '#64748b'];
+
+        // Plugin to draw text in the center of the doughnut
+        const centerTextPlugin = {
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                if (chart.config.type !== 'doughnut') return;
+                const {ctx, chartArea: {top, bottom, left, right}} = chart;
+                const centerX = (left + right) / 2;
+                const centerY = (top + bottom) / 2;
+                
+                ctx.restore();
+                
+                // Calculate font size relative to doughnut inner height
+                const innerHeight = bottom - top;
+                const fontSize = (innerHeight / 120).toFixed(2);
+                ctx.font = '700 ' + fontSize + "em Inter";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#f8fafc";
+                
+                let sum = 0;
+                if(chart.data.datasets.length > 0) {
+                    chart.data.datasets[0].data.forEach(d => { sum += Number(d) || 0; });
+                }
+                
+                const text = sum.toString(),
+                      textX = centerX - (ctx.measureText(text).width / 2),
+                      textY = centerY - (innerHeight * 0.05); // slightly above exact center
         
-        // Define colors for event types
-        const colors = [
-            '#EF4444', // Red
-            '#10B981', // Green
-            '#F59E0B', // Yellow
-            '#8B5CF6', // Purple
-            '#06B6D4', // Cyan
-            '#EC4899', // Pink
-            '#F97316', // Orange
-            '#14B8A6', // Teal
-            '#6366F1', // Indigo
-            '#6B7280'  // Gray
-        ];
-        
+                ctx.fillText(text, textX, textY);
+                
+                ctx.font = '500 ' + (fontSize * 0.35).toFixed(2) + "em Inter";
+                ctx.fillStyle = "#94a3b8";
+                const subText = "Total Events",
+                      subTextX = centerX - (ctx.measureText(subText).width / 2);
+                ctx.fillText(subText, subTextX, textY + (innerHeight * 0.15));
+                ctx.save();
+            }
+        };
+
         eventsChart = new Chart(eventsCtx, {
             type: 'doughnut',
             data: {
                 labels: eventsTypeData.success ? eventsTypeData.labels : ['No Data'],
                 datasets: [{
                     data: eventsTypeData.success && eventsTypeData.data.length > 0 ? eventsTypeData.data : [1],
-                    backgroundColor: eventsTypeData.success && eventsTypeData.data.length > 0 ? colors.slice(0, eventsTypeData.data.length) : ['#6B7280']
+                    backgroundColor: eventsTypeData.success && eventsTypeData.data.length > 0 ? colors.slice(0, eventsTypeData.data.length) : ['#334155'],
+                    borderWidth: 0,
+                    borderRadius: 5,
+                    spacing: 5
                 }]
             },
+            plugins: [centerTextPlugin],
             options: {
+                cutout: '78%',
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: { bottom: 10 }
+                },
                 plugins: {
                     legend: {
-                        position: 'right',
+                        position: 'bottom',
                         labels: {
-                            color: '#9CA3AF',
-                            padding: 15,
-                            font: { size: 11 }
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12 }
                         }
                     },
-                    title: {
-                        display: true,
-                        text: 'Events by Type - LIVE DATA',
-                        color: '#9CA3AF',
-                        font: { size: 12 }
+                    title: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
                     }
                 }
             }
@@ -188,10 +239,10 @@ async function initializeCharts() {
 async function refreshCharts() {
     try {
         // Fetch updated data
-        const logsTimeResponse = await fetch(`${API_BASE}/logs/chart/over-time?hours=24`);
+        const logsTimeResponse = await fetch(`${API_BASE}/logs/chart/over-time?hours=24`, { headers: window.getAuthHeaders() });
         const logsTimeData = await logsTimeResponse.json();
         
-        const eventsTypeResponse = await fetch(`${API_BASE}/logs/chart/by-type`);
+        const eventsTypeResponse = await fetch(`${API_BASE}/logs/chart/by-type`, { headers: window.getAuthHeaders() });
         const eventsTypeData = await eventsTypeResponse.json();
         
         // Update logs over time chart
@@ -203,11 +254,7 @@ async function refreshCharts() {
         
         // Update events by type chart
         if (eventsTypeData.success && eventsChart) {
-            const colors = [
-                '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#06B6D4',
-                '#EC4899', '#F97316', '#14B8A6', '#6366F1', '#6B7280'
-            ];
-            
+            const colors = ['#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#0ea5e9', '#ec4899', '#f97316', '#14b8a6', '#6366f1', '#64748b'];
             eventsChart.data.labels = eventsTypeData.labels;
             eventsChart.data.datasets[0].data = eventsTypeData.data;
             eventsChart.data.datasets[0].backgroundColor = colors.slice(0, eventsTypeData.data.length);
@@ -222,6 +269,10 @@ async function refreshCharts() {
 
 // Fallback: Initialize empty charts if data fetch fails
 function initializeEmptyCharts() {
+    Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.03)';
+
     const logsCtx = document.getElementById('logsChart').getContext('2d');
     logsChart = new Chart(logsCtx, {
         type: 'line',
@@ -230,8 +281,10 @@ function initializeEmptyCharts() {
             datasets: [{
                 label: 'Logs',
                 data: [0],
-                borderColor: '#06B6D4',
-                backgroundColor: 'rgba(6, 182, 212, 0.1)'
+                borderColor: '#38bdf8',
+                borderWidth: 2,
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                tension: 0.4, fill: true, pointRadius: 0
             }]
         },
         options: {
@@ -239,35 +292,63 @@ function initializeEmptyCharts() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                title: {
-                    display: true,
-                    text: 'Logs Over Time - Send test data to populate',
-                    color: '#9CA3AF'
-                }
+                title: { display: true, text: 'Logs Over Time - Send test data to populate', color: '#cbd5e1' }
+            },
+            scales: {
+                y: { grid: { borderDash: [4, 4], drawBorder: false } },
+                x: { grid: { display: false, drawBorder: false } }
             }
         }
     });
     
+    // Plugin to draw text in the center of the doughnut
+    const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw: function(chart) {
+            if (chart.config.type !== 'doughnut') return;
+            const {ctx, chartArea: {top, bottom, left, right}} = chart;
+            const centerX = (left + right) / 2;
+            const centerY = (top + bottom) / 2;
+            ctx.restore();
+            
+            const innerHeight = bottom - top;
+            const fontSize = (innerHeight / 120).toFixed(2);
+            ctx.font = '700 ' + fontSize + "em Inter";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#f8fafc";
+            const text = "0", textX = centerX - (ctx.measureText(text).width / 2), textY = centerY - (innerHeight * 0.05);
+            ctx.fillText(text, textX, textY);
+            
+            ctx.font = '500 ' + (fontSize * 0.35).toFixed(2) + "em Inter";
+            ctx.fillStyle = "#94a3b8";
+            const subText = "Total Events", subTextX = centerX - (ctx.measureText(subText).width / 2);
+            ctx.fillText(subText, subTextX, textY + (innerHeight * 0.15));
+            ctx.save();
+        }
+    };
+
     const eventsCtx = document.getElementById('eventsChart').getContext('2d');
     eventsChart = new Chart(eventsCtx, {
         type: 'doughnut',
         data: {
             labels: ['No Data'],
-            datasets: [{
-                data: [1],
-                backgroundColor: ['#6B7280']
+            datasets: [{ 
+                data: [1], 
+                backgroundColor: ['#334155'], 
+                borderWidth: 0, 
+                borderRadius: 5, 
+                spacing: 5 
             }]
         },
+        plugins: [centerTextPlugin],
         options: {
+            cutout: '78%',
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { bottom: 10 } },
             plugins: {
-                legend: { position: 'right', labels: { color: '#9CA3AF' } },
-                title: {
-                    display: true,
-                    text: 'Events by Type - Send test data to populate',
-                    color: '#9CA3AF'
-                }
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                title: { display: false }
             }
         }
     });
@@ -276,7 +357,7 @@ function initializeEmptyCharts() {
 // Load recent alerts
 async function loadRecentAlerts() {
     try {
-        const response = await fetch(`${API_BASE}/alerts?page=1&page_size=5&status=open`);
+        const response = await fetch(`${API_BASE}/alerts?page=1&page_size=5&status=open`, { headers: window.getAuthHeaders() });
         const data = await response.json();
 
         if (data.success && data.alerts.length > 0) {

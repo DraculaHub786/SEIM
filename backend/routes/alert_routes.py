@@ -5,6 +5,7 @@ Handles HTTP endpoints for alert operations
 
 from flask import Blueprint, request, jsonify
 from controllers.alert_controller import AlertController
+from middleware.auth_middleware import token_required
 
 def create_alert_routes(db):
     """Create and configure alert routes"""
@@ -13,7 +14,8 @@ def create_alert_routes(db):
     controller = AlertController(db)
     
     @alert_bp.route('', methods=['GET'])
-    def get_alerts():
+    @token_required
+    def get_alerts(current_user):
         """
         Get alerts with filtering and pagination
         GET /api/alerts?page=1&page_size=100&status=open&severity=high
@@ -51,7 +53,8 @@ def create_alert_routes(db):
             }), 500
     
     @alert_bp.route('/stats', methods=['GET'])
-    def get_statistics():
+    @token_required
+    def get_statistics(current_user):
         """
         Get alert statistics
         GET /api/alerts/stats
@@ -66,7 +69,8 @@ def create_alert_routes(db):
             }), 500
     
     @alert_bp.route('/<alert_id>/status', methods=['PATCH'])
-    def update_status(alert_id):
+    @token_required
+    def update_status(current_user, alert_id):
         """
         Update alert status
         PATCH /api/alerts/<id>/status

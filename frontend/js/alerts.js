@@ -28,7 +28,9 @@ async function initAlertsPage() {
 // Load alert statistics
 async function loadStatistics() {
     try {
-        const response = await fetch(`${API_BASE}/alerts/stats`);
+        const response = await fetch(`${API_BASE}/alerts/stats`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success) {
@@ -50,7 +52,9 @@ async function loadAlerts() {
             ...currentFilters
         });
 
-        const response = await fetch(`${API_BASE}/alerts?${params}`);
+        const response = await fetch(`${API_BASE}/alerts?${params}`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success) {
@@ -152,9 +156,7 @@ async function updateAlertStatus(alertId, newStatus) {
     try {
         const response = await fetch(`${API_BASE}/alerts/${alertId}/status`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: window.getAuthHeaders(),
             body: JSON.stringify({ status: newStatus })
         });
 

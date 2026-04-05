@@ -20,6 +20,7 @@ from database.db_connection import init_db, get_db
 # Import routes
 from routes.log_routes import create_log_routes
 from routes.alert_routes import create_alert_routes
+from routes.auth_routes import create_auth_routes
 
 # Import services
 from services.detection_engine import DetectionEngine
@@ -68,6 +69,7 @@ def initialize_app():
     # Register routes
     app.register_blueprint(create_log_routes(db, socketio))
     app.register_blueprint(create_alert_routes(db))
+    app.register_blueprint(create_auth_routes(db))
     logger.info("✓ Routes registered")
     
     # Initialize detection engine
@@ -120,6 +122,18 @@ def live_page():
     """Serve live monitoring page"""
     frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend')
     return send_from_directory(frontend_path, 'live.html')
+
+@app.route('/login')
+def login_page():
+    """Serve login page"""
+    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend')
+    return send_from_directory(frontend_path, 'login.html')
+
+@app.route('/register')
+def register_page():
+    """Serve registration page"""
+    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend')
+    return send_from_directory(frontend_path, 'register.html')
 
 # Serve static files (CSS, JS, images, etc.)
 @app.route('/<path:path>')

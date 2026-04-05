@@ -178,12 +178,13 @@ class LogController:
         Returns:
             dict: Time-series data
         """
+        from datetime import timezone
         try:
             # Calculate time range
             now = datetime.utcnow()
             start_time = now - timedelta(hours=hours)
             
-            # Aggregate logs by hour
+            # Aggregate logs by hour (This creates UTC hour buckets)
             pipeline = [
                 {
                     '$match': {
@@ -214,7 +215,10 @@ class LogController:
             
             for i in range(hours, -1, -1):
                 time_point = now - timedelta(hours=i)
-                label = time_point.strftime('%H:00')
+                
+                # Convert UTC bucket time to local timezone for the chart label
+                local_time = time_point.replace(tzinfo=timezone.utc).astimezone()
+                label = local_time.strftime('%I:%M %p')
                 labels.append(label)
                 
                 # Find count for this hour

@@ -33,7 +33,9 @@ async function loadLogs() {
             ...currentFilters
         });
 
-        const response = await fetch(`${API_BASE}/logs?${params}`);
+        const response = await fetch(`${API_BASE}/logs?${params}`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success) {
@@ -149,7 +151,9 @@ async function exportLogs() {
             ...currentFilters
         });
 
-        const response = await fetch(`${API_BASE}/logs?${params}`);
+        const response = await fetch(`${API_BASE}/logs?${params}`, {
+            headers: window.getAuthHeaders()
+        });
         const data = await response.json();
 
         if (data.success) {

@@ -13,6 +13,8 @@ class Config:
     
     # Flask
     SECRET_KEY = os.getenv('SECRET_KEY', 'siem-secret-key-change-in-production')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-super-secret-key-production')
+    JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', 24))
     DEBUG = os.getenv('DEBUG', 'True') == 'True'
     HOST = os.getenv('HOST', '0.0.0.0')
     PORT = int(os.getenv('PORT', 5000))

@@ -5,6 +5,7 @@ Handles HTTP endpoints for log operations
 
 from flask import Blueprint, request, jsonify
 from controllers.log_controller import LogController
+from middleware.auth_middleware import token_required
 
 def create_log_routes(db, socketio):
     """Create and configure log routes"""
@@ -48,7 +49,8 @@ def create_log_routes(db, socketio):
             }), 500
     
     @log_bp.route('', methods=['GET'])
-    def get_logs():
+    @token_required
+    def get_logs(current_user):
         """
         Get logs with filtering and pagination
         GET /api/logs?page=1&page_size=100&ip_address=...&event_type=...
@@ -90,7 +92,8 @@ def create_log_routes(db, socketio):
             }), 500
     
     @log_bp.route('/stats', methods=['GET'])
-    def get_statistics():
+    @token_required
+    def get_statistics(current_user):
         """
         Get log statistics
         GET /api/logs/stats
@@ -105,7 +108,8 @@ def create_log_routes(db, socketio):
             }), 500
     
     @log_bp.route('/chart/over-time', methods=['GET'])
-    def get_logs_over_time():
+    @token_required
+    def get_logs_over_time(current_user):
         """
         Get logs over time for chart
         GET /api/logs/chart/over-time?hours=24
@@ -121,7 +125,8 @@ def create_log_routes(db, socketio):
             }), 500
     
     @log_bp.route('/chart/by-type', methods=['GET'])
-    def get_events_by_type():
+    @token_required
+    def get_events_by_type(current_user):
         """
         Get events grouped by type for chart
         GET /api/logs/chart/by-type
